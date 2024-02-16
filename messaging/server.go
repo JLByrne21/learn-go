@@ -2,25 +2,40 @@ package main
 
 import (
 	// "fmt"
-	"bufio"
-	"fmt"
+
 	"log"
-	"os"
-	// "github.com/gorilla/websocket"
+	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 var url string = "http://localhost:8000"
+var upgrader = websocket.Upgrader{}
 
 
 func main() {
-		message := get_input()
     log.Println("server:", url)
-		log.Println(message)
+		http.HandleFunc("/send", handler)
+		log.Fatal(http.ListenAndServe(":8000", nil))
 }
 
-func get_input() string {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Message:")
-	message, _ := reader.ReadString('\n')
-	return message
+
+func handler(writer http.ResponseWriter, request *http.Request) {
+	conn, err := upgrader.Upgrade(writer, request, nil)
+	if err != nil {
+			log.Println(err)
+			return
+	}
+	defer conn.Close()
+	for {
+    messageType, p, err := conn.ReadMessage()
+    if err != nil {
+        log.Println(err)
+        return
+    }
+    if err := conn.WriteMessage(messageType, p); err != nil {
+        log.Println(err)
+        return
+    }
+}
 }
