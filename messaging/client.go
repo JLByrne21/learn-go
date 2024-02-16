@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Print("Client")
+	input := get_input()
 }
 
 
